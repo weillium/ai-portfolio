@@ -9,6 +9,7 @@ interface AuthWrapperProps {
 function AuthWrapper({ children }: AuthWrapperProps) {
   const { user, signOut } = useAuthenticator();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
   const [email, setEmail] = useState<string | undefined>(undefined);
   const [groups, setGroups] = useState<string[]>([]);
 
@@ -58,13 +59,42 @@ function AuthWrapper({ children }: AuthWrapperProps) {
       )}
 
       {user && (
-        <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1100, display: "flex", alignItems: "center" }}>
-          <span style={{ marginRight: "1rem" }}>{email ?? "User"}</span>
-          <span style={{ marginRight: "1rem", fontStyle: "italic", color: "gray" }}>
-            ({groups.join(", ")})
-          </span>
-          <button onClick={() => signOut()}>Logout</button>
-        </div>
+        <>
+          <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1100, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <button onClick={() => setShowAccountModal(true)}>Account Info</button>
+            <button onClick={() => signOut()}>Logout</button>
+          </div>
+
+          {showAccountModal && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 1200,
+              }}
+              onClick={() => setShowAccountModal(false)}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{ background: "white", padding: "2rem", borderRadius: "8px", minWidth: "320px" }}
+              >
+                <h2>Account Info</h2>
+                <p>Email: {email ?? "N/A"}</p>
+                <p>Groups: {groups.length > 0 ? groups.join(", ") : "None"}</p>
+                <button onClick={() => setShowAccountModal(false)} style={{ marginTop: "1rem" }}>
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {showAuthModal && (
