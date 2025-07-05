@@ -1,11 +1,11 @@
-import ProjectGallery from "./projectGallery";
+import Home from "./home";
+import AuthWrapper from "./AuthWrapper";
 
 function App() {
   return (
-    <main>
-      <h1>My Projects</h1>
-      <ProjectGallery />
-    </main>
+    <AuthWrapper>
+      <Home />
+    </AuthWrapper>
   );
 }
 
