@@ -1,15 +1,16 @@
-import { useState, useEffect, cloneElement, ReactElement } from "react";
+import React, { ReactElement, cloneElement, useState, useEffect } from "react";
 import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react";
 import { fetchUserAttributes, fetchAuthSession, updateUserAttribute, resetPassword, confirmResetPassword } from "@aws-amplify/auth";
 
 interface AuthWrapperProps {
-  children: ReactElement;
+  children: ReactElement<{ isAdmin: boolean }>;
 }
 
 function AuthWrapper({ children }: AuthWrapperProps) {
   const { user, signOut } = useAuthenticator();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAccountInfoModal, setShowAccountInfoModal] = useState(false);
+  const [showProjectGalleryModal, setShowProjectGalleryModal] = useState(false);
   const [email, setEmail] = useState<string | undefined>(undefined);
   const [displayName, setDisplayName] = useState<string>("");
   const [groups, setGroups] = useState<string[]>([]);
@@ -145,17 +146,13 @@ function AuthWrapper({ children }: AuthWrapperProps) {
     <>
       {childrenWithProps}
 
-      {!user && (
-        <button
-          style={{ position: "fixed", top: 10, right: 10, zIndex: 1100 }}
-          onClick={() => setShowAuthModal(true)}
-        >
-          Login / Signup
-        </button>
-      )}
-
       {user && (
-        <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1100, display: "flex", alignItems: "center" }}>
+        <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1100, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <button
+            onClick={() => setShowProjectGalleryModal(true)}
+          >
+            Project Gallery
+          </button>
           <button
             style={{ marginRight: "1rem" }}
             onClick={() => setShowAccountInfoModal(true)}
@@ -163,6 +160,21 @@ function AuthWrapper({ children }: AuthWrapperProps) {
             Account Info
           </button>
           <button onClick={() => signOut()}>Logout</button>
+        </div>
+      )}
+
+      {!user && (
+        <div style={{ position: "fixed", top: 10, right: 10, zIndex: 1100, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <button
+            onClick={() => setShowProjectGalleryModal(true)}
+          >
+            Project Gallery
+          </button>
+          <button
+            onClick={() => setShowAuthModal(true)}
+          >
+            Login / Signup
+          </button>
         </div>
       )}
 
@@ -283,6 +295,34 @@ function AuthWrapper({ children }: AuthWrapperProps) {
             
             <hr />
             <button onClick={() => setShowAccountInfoModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {showProjectGalleryModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1400,
+          }}
+          onClick={() => setShowProjectGalleryModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "white", padding: "2rem", borderRadius: "8px", minWidth: "320px", maxHeight: "80vh", overflowY: "auto" }}
+          >
+            <h2>Project Gallery</h2>
+            {/* TODO: Add your project gallery content here */}
+            <p>This is the project gallery modal content.</p>
+            <button onClick={() => setShowProjectGalleryModal(false)}>Close</button>
           </div>
         </div>
       )}
