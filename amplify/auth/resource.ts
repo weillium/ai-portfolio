@@ -29,12 +29,7 @@ export const auth = defineAuth({
     preferredUsername: {
       mutable: true,
       required: false,
-    },
-    // Maps to Cognito standard attribute 'updated_at'
-    lastUpdateTime: {
-      mutable: true,
-      required: false,
-    },
+    }
   }, 
   accountRecovery: 'EMAIL_ONLY', 
   access: (allow) => [
