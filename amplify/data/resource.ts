@@ -55,8 +55,6 @@ const schema = a.schema({
   listUsers: a
     .mutation()
     .arguments({
-      userId: a.string().required(),
-      groupName: a.string().required(),
     })
     .authorization((allow) => [
       allow.group('admin')

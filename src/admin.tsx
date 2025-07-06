@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { CognitoIdentityProviderClient, ListUsersInGroupCommand, UserType } from "@aws-sdk/client-cognito-identity-provider";
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from "../amplify/data/resource";
 
 interface User {
   username: string;
@@ -7,31 +8,7 @@ interface User {
   status?: string;
 }
 
-const client = new CognitoIdentityProviderClient({ region: "us-east-1" }); // Adjust region as needed
-const USER_POOL_ID = "your_user_pool_id_here"; // Replace with your Cognito User Pool ID
-
-async function listUsersInGroup(groupName: string): Promise<User[]> {
-  const command = new ListUsersInGroupCommand({
-    GroupName: groupName,
-    UserPoolId: USER_POOL_ID,
-  });
-
-  try {
-    const response = await client.send(command);
-    const users = response.Users?.map((user: UserType) => {
-      const emailAttr = user.Attributes?.find((attr) => attr.Name === "email");
-      return {
-        username: user.Username ?? "",
-        email: emailAttr?.Value,
-        status: user.UserStatus,
-      };
-    }) ?? [];
-    return users;
-  } catch (error) {
-    console.error("Error listing users in group", error);
-    throw error;
-  }
-}
+const client = generateClient<Schema>();
 
 function Admin() {
   const [users, setUsers] = useState<User[]>([]);
@@ -43,7 +20,9 @@ function Admin() {
       setLoading(true);
       setError(null);
       try {
-        const usersList = await listUsersInGroup("admin"); // Use your actual group name here
+        // Use Amplify Data client to call listUsers
+        const response = await client.mutations.listUsers({});
+        const usersList = typeof response.data === "string" ? JSON.parse(response.data) as User[] : response.data as User[];
         setUsers(usersList);
       } catch (err) {
         setError("Failed to fetch users");
