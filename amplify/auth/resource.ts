@@ -25,12 +25,7 @@ export const auth = defineAuth({
     preferredUsername: {
       mutable: true,
       required: false,
-    },
-    // Maps to Cognito standard attribute 'updated_at'
-    lastUpdateTime: {
-      mutable: true,
-      required: false,
-    },
+    }
   },
   access: (allow) => [
     allow.resource(listUsers).to(["listUsers"]),
