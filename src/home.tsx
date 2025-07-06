@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Admin from './admin';
 
 function Home({ isAdmin }: { isAdmin: boolean }) {
   const [showModal, setShowModal] = useState(false);
@@ -41,6 +42,8 @@ function Home({ isAdmin }: { isAdmin: boolean }) {
                     minWidth: "300px",
                     maxWidth: "90vw",
                     boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+                    maxHeight: "90vh",
+                    overflowY: "auto",
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -51,7 +54,7 @@ function Home({ isAdmin }: { isAdmin: boolean }) {
                   </section>
                   <section>
                     <h3>Manage Users</h3>
-                    <p>Placeholder for user management.</p>
+                    <Admin />
                   </section>
                   <button onClick={() => setShowModal(false)} style={{ marginTop: "1rem" }}>
                     Close

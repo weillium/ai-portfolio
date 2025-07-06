@@ -1,4 +1,8 @@
 import { defineAuth } from '@aws-amplify/backend';
+import { addUserToGroup } from '../data/add-user-to-group/resource';
+import { removeUserFromGroup } from '../data/remove-user-from-group/resource';
+import { listUsersInGroup } from '../data/list-users-in-group/resource';
+import { listUsers } from '../data/list-users/resource';
 
 /**
  * Define and configure your auth resource
@@ -30,5 +34,11 @@ export const auth = defineAuth({
       required: false,
     },
   }, 
-  accountRecovery: 'EMAIL_ONLY'
+  accountRecovery: 'EMAIL_ONLY', 
+  access: (allow) => [
+    allow.resource(addUserToGroup).to(["addUserToGroup"]),
+    allow.resource(removeUserFromGroup).to(["removeUserFromGroup"]),
+    allow.resource(listUsersInGroup).to(["listUsersInGroup"]),
+    allow.resource(listUsers).to(["listUsers"]),
+  ]
 });

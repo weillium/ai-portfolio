@@ -1,11 +1,8 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { addUserToGroup } from "./add-user-to-group/resource"
+import { removeUserFromGroup } from "./remove-user-from-group/resource";
+import { listUsersInGroup } from "./list-users-in-group/resource";
 
-/*== STEP 1 ===============================================================
-The section below creates a Todo database table with a "content" field. Try
-adding a new "isDone" field as a boolean. The authorization rule below
-specifies that any user authenticated via an API key can "create", "read",
-"update", and "delete" any "Todo" records.
-=========================================================================*/
 const schema = a.schema({
   Projects: a
     .model({
@@ -22,6 +19,50 @@ const schema = a.schema({
       allow.publicApiKey().to(['read']),
       allow.group('admin').to(['create', 'read', 'update', 'delete']),
     ]),
+  addUserToGroup: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+      groupName: a.string().required(),
+    })
+    .authorization((allow) => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(addUserToGroup))
+    .returns(a.json()), 
+  removeUserFromGroup: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+      groupName: a.string().required(),
+    })
+    .authorization((allow) => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(removeUserFromGroup))
+    .returns(a.json()), 
+  listUsersInGroup: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+      groupName: a.string().required(),
+    })
+    .authorization((allow) => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(listUsersInGroup))
+    .returns(a.json()), 
+  listUsers: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+      groupName: a.string().required(),
+    })
+    .authorization((allow) => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(listUsersInGroup))
+    .returns(a.json()), 
 });
 
 export type Schema = ClientSchema<typeof schema>;
