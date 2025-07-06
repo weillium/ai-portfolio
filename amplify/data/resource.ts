@@ -1,7 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
-import { addUserToGroup } from "./add-user-to-group/resource"
-import { removeUserFromGroup } from "./remove-user-from-group/resource";
-import { listUsersInGroup } from "./list-users-in-group/resource";
+import { listUsers } from "../functions/list-users/resource";
 
 const schema = a.schema({
   Projects: a
@@ -19,48 +17,15 @@ const schema = a.schema({
       allow.publicApiKey().to(['read']),
       allow.group('admin').to(['create', 'read', 'update', 'delete']),
     ]),
-  addUserToGroup: a
-    .mutation()
-    .arguments({
-      userId: a.string().required(),
-      groupName: a.string().required(),
-    })
-    .authorization((allow) => [
-      allow.group('admin')
-    ])
-    .handler(a.handler.function(addUserToGroup))
-    .returns(a.json()), 
-  removeUserFromGroup: a
-    .mutation()
-    .arguments({
-      userId: a.string().required(),
-      groupName: a.string().required(),
-    })
-    .authorization((allow) => [
-      allow.group('admin')
-    ])
-    .handler(a.handler.function(removeUserFromGroup))
-    .returns(a.json()), 
-  listUsersInGroup: a
-    .mutation()
-    .arguments({
-      userId: a.string().required(),
-      groupName: a.string().required(),
-    })
-    .authorization((allow) => [
-      allow.group('admin')
-    ])
-    .handler(a.handler.function(listUsersInGroup))
-    .returns(a.json()), 
+
   listUsers: a
     .mutation()
-    .arguments({
-    })
-    .authorization((allow) => [
+    .arguments({})
+    .authorization(allow => [
       allow.group('admin')
     ])
-    .handler(a.handler.function(listUsersInGroup))
-    .returns(a.json()), 
+    .handler(a.handler.function(listUsers))
+    .returns(a.json())
 });
 
 export type Schema = ClientSchema<typeof schema>;
