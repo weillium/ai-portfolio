@@ -1,5 +1,11 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { listUsers } from "../functions/list-users/resource";
+import { listUserGroups } from "../functions/list-user-groups/resource";
+import { addUserToGroup } from "../functions/add-user-to-group/resource";
+import { removeUserFromGroup } from "../functions/remove-user-from-group/resource";
+import { setUserPassword } from "../functions/set-user-password/resource";
+import { resetUserPassword } from "../functions/reset-user-password/resource";
+import { deleteUser } from "../functions/delete-user/resource";
 
 const schema = a.schema({
   Projects: a
@@ -25,7 +31,77 @@ const schema = a.schema({
       allow.group('admin')
     ])
     .handler(a.handler.function(listUsers))
-    .returns(a.json())
+    .returns(a.json()),
+
+  listUserGroups: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+    })
+    .authorization(allow => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(listUserGroups))
+    .returns(a.json()),
+
+  addUserToGroup: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+      groupName: a.string().required(),
+    })
+    .authorization(allow => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(addUserToGroup))
+    .returns(a.json()), 
+
+  removeUserFromGroup: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+      groupName: a.string().required(),
+    })
+    .authorization(allow => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(removeUserFromGroup))
+    .returns(a.json()), 
+
+  setUserPassword: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+      password: a.string().required(),
+      permanent: a.boolean().required(),
+    })
+    .authorization(allow => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(setUserPassword))
+    .returns(a.json()), 
+
+  resetUserPassword: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+    })
+    .authorization(allow => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(resetUserPassword))
+    .returns(a.json()), 
+  
+  deleteUser: a
+    .mutation()
+    .arguments({
+      userId: a.string().required(),
+    })
+    .authorization(allow => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(deleteUser))
+    .returns(a.json()), 
 });
 
 export type Schema = ClientSchema<typeof schema>;

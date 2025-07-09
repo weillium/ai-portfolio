@@ -1,6 +1,7 @@
 import React, { ReactElement, cloneElement, useState, useEffect } from "react";
 import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react";
 import { fetchUserAttributes, fetchAuthSession, updateUserAttribute, resetPassword, confirmResetPassword } from "@aws-amplify/auth";
+import ProjectGallery from './projectGallery';
 
 interface AuthWrapperProps {
   children: ReactElement<{ isAdmin: boolean }>;
@@ -278,8 +279,7 @@ function AuthWrapper({ children }: AuthWrapperProps) {
                 style={{ background: "white", padding: "2rem", borderRadius: "8px", minWidth: "320px", maxHeight: "80vh", overflowY: "auto" }}
               >
                 <h2>Project Gallery</h2>
-                {/* TODO: Add your project gallery content here */}
-                <p>This is the project gallery modal content.</p>
+                <ProjectGallery />
                 <button onClick={() => setShowProjectGalleryModal(false)}>Close</button>
               </div>
             </div>
