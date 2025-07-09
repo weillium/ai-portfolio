@@ -6,6 +6,7 @@ import { removeUserFromGroup } from '../functions/remove-user-from-group/resourc
 import { setUserPassword } from '../functions/set-user-password/resource';
 import { resetUserPassword } from '../functions/reset-user-password/resource';
 import { deleteUser } from '../functions/delete-user/resource';
+import { listGroups } from '../functions/list-groups/resource';
 
 /**
  * Define and configure your auth resource
@@ -47,5 +48,6 @@ export const auth = defineAuth({
     allow.resource(removeUserFromGroup).to(["manageGroupMembership"]), 
     allow.resource(setUserPassword).to(["managePasswordRecovery"]),
     allow.resource(resetUserPassword).to(["managePasswordRecovery"]), 
+    allow.resource(listGroups).to(["manageGroups"]), 
   ]
 });

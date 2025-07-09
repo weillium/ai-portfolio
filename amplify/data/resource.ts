@@ -6,6 +6,7 @@ import { removeUserFromGroup } from "../functions/remove-user-from-group/resourc
 import { setUserPassword } from "../functions/set-user-password/resource";
 import { resetUserPassword } from "../functions/reset-user-password/resource";
 import { deleteUser } from "../functions/delete-user/resource";
+import { listGroups } from "../functions/list-groups/resource";
 
 const schema = a.schema({
   Projects: a
@@ -101,6 +102,17 @@ const schema = a.schema({
       allow.group('admin')
     ])
     .handler(a.handler.function(deleteUser))
+    .returns(a.json()), 
+
+  listGroups: a
+    .mutation()
+    .arguments({
+      // No arguments needed for listing groups
+    })
+    .authorization(allow => [
+      allow.group('admin')
+    ])
+    .handler(a.handler.function(listGroups))
     .returns(a.json()), 
 });
 

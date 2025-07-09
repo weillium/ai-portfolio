@@ -1,13 +1,14 @@
-import React, { ReactElement, cloneElement, useState, useEffect } from "react";
+import React, { ReactElement, cloneElement, useState, useEffect, useCallback } from "react";
 import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react";
 import { fetchUserAttributes, fetchAuthSession, updateUserAttribute, resetPassword, confirmResetPassword } from "@aws-amplify/auth";
 import ProjectGallery from './projectGallery';
 
 interface AuthWrapperProps {
   children: ReactElement<{ isAdmin: boolean }>;
+  onUserGroupChange?: () => void;
 }
 
-function AuthWrapper({ children }: AuthWrapperProps) {
+function AuthWrapper({ children, onUserGroupChange }: AuthWrapperProps) {
   const { user, signOut } = useAuthenticator();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showAccountInfoModal, setShowAccountInfoModal] = useState(false);
@@ -26,54 +27,62 @@ function AuthWrapper({ children }: AuthWrapperProps) {
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
-  useEffect(() => {
-    async function fetchUserInfo() {
-      if (user) {
-        try {
-          const attributes = await fetchUserAttributes();
-          setEmail(attributes.email ?? user.username);
-          setDisplayName(attributes.preferred_username ?? "");
+  const fetchUserInfo = useCallback(async () => {
+    if (user) {
+      try {
+        const attributes = await fetchUserAttributes();
+        setEmail(attributes.email ?? user.username);
+        setDisplayName(attributes.preferred_username ?? "");
 
-          // Use fetchAuthSession to get current groups
-          const session = await fetchAuthSession();
-          if (
-            session.tokens &&
-            session.tokens.accessToken &&
-            session.tokens.accessToken.payload &&
-            session.tokens.accessToken.payload["cognito:groups"]
-          ) {
-            const groupsFromToken = session.tokens.accessToken.payload["cognito:groups"];
-            if (typeof groupsFromToken === "string") {
-              setGroups(groupsFromToken.split(","));
-            } else if (Array.isArray(groupsFromToken)) {
-              setGroups(groupsFromToken.map((g) => String(g)));
-            } else {
-              setGroups([]);
-            }
+        // Use fetchAuthSession to get current groups
+        const session = await fetchAuthSession();
+        if (
+          session.tokens &&
+          session.tokens.accessToken &&
+          session.tokens.accessToken.payload &&
+          session.tokens.accessToken.payload["cognito:groups"]
+        ) {
+          const groupsFromToken = session.tokens.accessToken.payload["cognito:groups"];
+          if (typeof groupsFromToken === "string") {
+            setGroups(groupsFromToken.split(","));
+          } else if (Array.isArray(groupsFromToken)) {
+            setGroups(groupsFromToken.map((g) => String(g)));
           } else {
             setGroups([]);
           }
-
-          // Show login success message and auto close modal
-          setLoginSuccess(true);
-          setTimeout(() => {
-            setShowAuthModal(false);
-            setLoginSuccess(false);
-          }, 2000);
-        } catch (error) {
-          console.error("Failed to fetch user attributes or session", error);
-          setEmail(undefined);
+        } else {
           setGroups([]);
-          setDisplayName("");
         }
-      } else {
+
+        // Show login success message and auto close modal
+        setLoginSuccess(true);
+        setTimeout(() => {
+          setShowAuthModal(false);
+          setLoginSuccess(false);
+        }, 2000);
+      } catch (error) {
+        console.error("Failed to fetch user attributes or session", error);
         setEmail(undefined);
         setGroups([]);
         setDisplayName("");
       }
+    } else {
+      setEmail(undefined);
+      setGroups([]);
+      setDisplayName("");
     }
-    fetchUserInfo();
   }, [user]);
+
+  useEffect(() => {
+    fetchUserInfo();
+  }, [user, fetchUserInfo]);
+
+  useEffect(() => {
+    if (onUserGroupChange) {
+      onUserGroupChange();
+      fetchUserInfo();
+    }
+  }, [onUserGroupChange, fetchUserInfo]);
 
   const isAdmin = groups.includes("admin");
 
