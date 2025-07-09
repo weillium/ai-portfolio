@@ -1,11 +1,16 @@
 import { defineStorage } from '@aws-amplify/backend';
 
 export const storage = defineStorage({
-  name: 'storage',
+  name: 'portfolioStorage',
+  isDefault: true,
   access: (allow) => ({
-    'public/': [
+    'public/*': [
         allow.guest.to(['read']),
-        allow.authenticated.to(['read', 'write'])
-    ]
+        allow.groups(['admin']).to(['read', 'write', 'delete'])
+    ], 
+    'project-icons/*': [
+        allow.guest.to(['read']),
+        allow.groups(['admin']).to(['read', 'write', 'delete'])
+    ],
   }),
 });

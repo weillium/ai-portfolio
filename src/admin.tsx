@@ -32,6 +32,17 @@ interface ListGroupsResponse {
   [key: string]: unknown;
 }
 
+interface Project {
+  id: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  project_name: string;
+  project_description?: string | null;
+  project_icon?: string | null;
+  project_url?: string | null;
+  show_project?: boolean | null;
+}
+
 const client = generateClient<Schema>();
 
 function isListUsersResponse(data: unknown): data is ListUsersResponse {
@@ -72,11 +83,23 @@ function Admin({ onUserGroupChange }: AdminProps) {
   const [showRemoveGroupModal, setShowRemoveGroupModal] = useState(false);
   const [currentUserForGroupAction, setCurrentUserForGroupAction] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [groupActionType, setGroupActionType] = useState<'add' | 'remove' | null>(null);
   const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [permanentFlag, setPermanentFlag] = useState(true);
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
+
+  const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [newProjectIcon, setNewProjectIcon] = useState("");
+  const [newProjectUrl, setNewProjectUrl] = useState("");
+  const [newProjectShow, setNewProjectShow] = useState(true);
+
+  const [showEditProjectModal, setShowEditProjectModal] = useState(false);
+  const [editProject, setEditProject] = useState<Project | null>(null);
 
   async function refreshUsers() {
     setLoading(true);
@@ -161,9 +184,32 @@ function Admin({ onUserGroupChange }: AdminProps) {
     }
   }
 
+  // Function to fetch all projects
+  async function fetchProjects() {
+    setLoadingProjects(true);
+    setProjectsError(null);
+    try {
+      const { data: projectsData, errors } = await client.models.Projects.list();
+      if (errors) {
+        console.error("Error fetching projects:", errors);
+        setProjectsError("Failed to fetch projects");
+        setProjects([]);
+      } else {
+        setProjects(projectsData ?? []);
+      }
+    } catch (error) {
+      console.error("Exception fetching projects:", error);
+      setProjectsError("Failed to fetch projects");
+      setProjects([]);
+    } finally {
+      setLoadingProjects(false);
+    }
+  }
+
   useEffect(() => {
     refreshUsers();
     fetchAvailableGroups();
+    fetchProjects();
   }, []);
 
   async function handleResetPassword(cognitoUsername: string) {
@@ -248,6 +294,98 @@ function Admin({ onUserGroupChange }: AdminProps) {
     }
   }
 
+  async function handleCreateProject() {
+    if (!newProjectName) {
+      alert("Project name is required.");
+      return;
+    }
+    try {
+      const { errors, data: createdProject } = await client.models.Projects.create({
+        project_name: newProjectName,
+        project_description: newProjectDescription || undefined,
+        project_icon: newProjectIcon || undefined,
+        project_url: newProjectUrl || undefined,
+        show_project: newProjectShow,
+      });
+      if (errors) {
+        console.error("Error creating project:", errors);
+        alert("Failed to create project.");
+      } else if (createdProject) {
+        alert(`Project '${createdProject.project_name}' created successfully.`);
+        setShowCreateProjectModal(false);
+        setNewProjectName("");
+        setNewProjectDescription("");
+        setNewProjectIcon("");
+        setNewProjectUrl("");
+        setNewProjectShow(true);
+        fetchProjects();
+      }
+    } catch (error) {
+      console.error("Exception creating project:", error);
+      alert("Failed to create project.");
+    }
+  }
+
+  async function handleDeleteProject(projectId: string) {
+    if (!projectId) {
+      alert("Invalid project ID.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+      return;
+    }
+    try {
+      const { errors } = await client.models.Projects.delete({ id: projectId });
+      if (errors) {
+        console.error("Failed to delete project:", errors);
+        alert("Failed to delete project.");
+      } else {
+        alert(`Project deleted successfully.`);
+        fetchProjects();
+      }
+    } catch (error) {
+      console.error("Exception deleting project:", error);
+      alert("Failed to delete project.");
+    }
+  }
+
+  // Open edit modal and populate fields
+  function openEditModal(project: Project) {
+    setEditProject(project);
+    setShowEditProjectModal(true);
+  }
+
+  // Handle edit project save
+  async function handleSaveEditProject() {
+    if (!editProject) return;
+    if (!editProject.project_name.trim()) {
+      alert("Project name cannot be empty.");
+      return;
+    }
+    try {
+      const { data: updatedProject, errors } = await client.models.Projects.update({
+        id: editProject.id,
+        project_name: editProject.project_name,
+        project_description: editProject.project_description || undefined,
+        project_icon: editProject.project_icon || undefined,
+        project_url: editProject.project_url || undefined,
+        show_project: editProject.show_project ?? false,
+      });
+      if (errors) {
+        console.error("Failed to update project:", errors);
+        alert("Failed to update project.");
+      } else if (updatedProject) {
+        alert(`Project '${updatedProject.project_name}' updated successfully.`);
+        setShowEditProjectModal(false);
+        setEditProject(null);
+        fetchProjects();
+      }
+    } catch (error) {
+      console.error("Exception updating project:", error);
+      alert("Failed to update project.");
+    }
+  }
+
   return (
     <div style={{ padding: "1rem" }}>
       <h2>User Management</h2>
@@ -281,13 +419,11 @@ function Admin({ onUserGroupChange }: AdminProps) {
                   }}>Set Password</button>
                   <button onClick={() => {
                     setCurrentUserForGroupAction(user.cognitoUsername);
-                    setGroupActionType('add');
                     setSelectedGroup(null);
                     setShowAddGroupModal(true);
                   }}>Add to Group</button>
                   <button onClick={() => {
                     setCurrentUserForGroupAction(user.cognitoUsername);
-                    setGroupActionType('remove');
                     setSelectedGroup(null);
                     setShowRemoveGroupModal(true);
                   }}>Remove from Group</button>
@@ -365,6 +501,120 @@ function Admin({ onUserGroupChange }: AdminProps) {
           </div>
         </div>
       )}
+
+      <section style={{ marginTop: "2rem" }}>
+        <h2>Project Management</h2>
+        <button onClick={() => setShowCreateProjectModal(true)} style={{ marginBottom: "1rem" }}>
+          Create New Project
+        </button>
+        {loadingProjects && <p>Loading projects...</p>}
+        {projectsError && <p style={{ color: "red" }}>{projectsError}</p>}
+        {!loadingProjects && !projectsError && (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={{ border: "1px solid black", padding: "0.5rem" }}>Created On</th>
+                <th style={{ border: "1px solid black", padding: "0.5rem" }}>Updated On</th>
+                <th style={{ border: "1px solid black", padding: "0.5rem" }}>Project Name</th>
+                <th style={{ border: "1px solid black", padding: "0.5rem" }}>Description</th>
+                <th style={{ border: "1px solid black", padding: "0.5rem" }}>Icon</th>
+                <th style={{ border: "1px solid black", padding: "0.5rem" }}>URL</th>
+                <th style={{ border: "1px solid black", padding: "0.5rem" }}>Show Project</th>
+                <th style={{ border: "1px solid black", padding: "0.5rem" }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((project) => (
+                <tr key={project.id ?? "unknown"}>
+                  <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.createdAt ? new Date(project.createdAt).toLocaleString() : "-"}</td>
+                  <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.updatedAt ? new Date(project.updatedAt).toLocaleString() : "-"}</td>
+                  <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.project_name}</td>
+                  <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.project_description ?? "-"}</td>
+                  <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.project_icon ?? "-"}</td>
+                  <td style={{ border: "1px solid black", padding: "0.5rem" }}>
+                    {project.project_url ? (
+                      <a href={project.project_url} target="_blank" rel="noopener noreferrer">Link</a>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.show_project ? "Yes" : "No"}</td>
+                  <td style={{ border: "1px solid black", padding: "0.5rem", display: "flex", gap: "0.25rem" }}>
+                    <button onClick={() => openEditModal(project)}>Update</button>
+                    <button onClick={() => handleDeleteProject(project.id)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {showCreateProjectModal && (
+          <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1500 }} onClick={() => setShowCreateProjectModal(false)}>
+            <div style={{ background: "white", padding: "1rem", borderRadius: "8px", minWidth: "300px" }} onClick={e => e.stopPropagation()}>
+              <h3>Create New Project</h3>
+              <label>
+                Project Name (required):
+                <input type="text" value={newProjectName} onChange={e => setNewProjectName(e.target.value)} style={{ width: "100%", marginBottom: "1rem" }} />
+              </label>
+              <label>
+                Description:
+                <textarea value={newProjectDescription} onChange={e => setNewProjectDescription(e.target.value)} style={{ width: "100%", marginBottom: "1rem" }} />
+              </label>
+              <label>
+                Icon URL:
+                <input type="text" value={newProjectIcon} onChange={e => setNewProjectIcon(e.target.value)} style={{ width: "100%", marginBottom: "1rem" }} />
+              </label>
+              <label>
+                Project URL:
+                <input type="text" value={newProjectUrl} onChange={e => setNewProjectUrl(e.target.value)} style={{ width: "100%", marginBottom: "1rem" }} />
+              </label>
+              <label>
+                Show Project:
+                <select value={newProjectShow ? "true" : "false"} onChange={e => setNewProjectShow(e.target.value === "true")} style={{ width: "100%", marginBottom: "1rem" }}>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </label>
+              <button onClick={handleCreateProject} disabled={!newProjectName}>Create</button>
+              <button onClick={() => setShowCreateProjectModal(false)} style={{ marginLeft: "1rem" }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {showEditProjectModal && editProject && (
+          <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1500 }} onClick={() => setShowEditProjectModal(false)}>
+            <div style={{ background: "white", padding: "1rem", borderRadius: "8px", minWidth: "300px" }} onClick={e => e.stopPropagation()}>
+              <h3>Edit Project</h3>
+              <label>
+                Project Name (required):
+                <input type="text" value={editProject.project_name} onChange={e => setEditProject({ ...editProject, project_name: e.target.value })} style={{ width: "100%", marginBottom: "1rem" }} />
+              </label>
+              <label>
+                Description:
+                <textarea value={editProject.project_description ?? ""} onChange={e => setEditProject({ ...editProject, project_description: e.target.value })} style={{ width: "100%", marginBottom: "1rem" }} />
+              </label>
+              <label>
+                Icon URL:
+                <input type="text" value={editProject.project_icon ?? ""} onChange={e => setEditProject({ ...editProject, project_icon: e.target.value })} style={{ width: "100%", marginBottom: "1rem" }} />
+              </label>
+              <label>
+                Project URL:
+                <input type="text" value={editProject.project_url ?? ""} onChange={e => setEditProject({ ...editProject, project_url: e.target.value })} style={{ width: "100%", marginBottom: "1rem" }} />
+              </label>
+              <label>
+                Show Project:
+                <select value={editProject.show_project ? "true" : "false"} onChange={e => setEditProject({ ...editProject, show_project: e.target.value === "true" })} style={{ width: "100%", marginBottom: "1rem" }}>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </label>
+              <button onClick={handleSaveEditProject} disabled={!editProject.project_name}>Save</button>
+              <button onClick={() => setShowEditProjectModal(false)} style={{ marginLeft: "1rem" }}>Cancel</button>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

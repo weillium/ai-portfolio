@@ -49,11 +49,6 @@ function Home({ isAdmin }: { isAdmin: boolean }) {
                 >
                   <h2>Admin Panel</h2>
                   <section style={{ marginBottom: "1rem" }}>
-                    <h3>Manage Projects</h3>
-                    <p>Placeholder for project management.</p>
-                  </section>
-                  <section>
-                    <h3>Manage Users</h3>
                     <Admin />
                   </section>
                   <button onClick={() => setShowModal(false)} style={{ marginTop: "1rem" }}>

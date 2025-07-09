@@ -22,7 +22,7 @@ function ProjectGallery() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "1rem" }}>
         {projects.map((project) => (
           <button
-            key={project.project_id}
+            key={project.id}
             onClick={() => setSelectedProject(project)}
             style={{
               display: "flex",
@@ -75,10 +75,10 @@ function ProjectGallery() {
             <h2>{selectedProject.project_name}</h2>
             <p>{selectedProject.project_description}</p>
             <p>
-              Created on: {selectedProject.created_on ? new Date(selectedProject.created_on).toLocaleDateString() : "N/A"}
+              Created on: {selectedProject.createdAt ? new Date(selectedProject.createdAt).toLocaleDateString() : "N/A"}
             </p>
             <p>
-              Last updated on: {selectedProject.updated_on ? new Date(selectedProject.updated_on).toLocaleDateString() : "N/A"}
+              Last updated on: {selectedProject.updatedAt ? new Date(selectedProject.updatedAt).toLocaleDateString() : "N/A"}
             </p>
             <iframe
               src={selectedProject.project_url ?? ""}

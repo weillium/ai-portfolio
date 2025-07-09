@@ -11,9 +11,6 @@ import { listGroups } from "../functions/list-groups/resource";
 const schema = a.schema({
   Projects: a
     .model({
-      project_id: a.id(),
-      created_on: a.timestamp(),
-      updated_on: a.timestamp(),
       project_name: a.string().required(),
       project_description: a.string(),
       project_icon: a.string(),
