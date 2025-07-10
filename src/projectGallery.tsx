@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
+import { StorageImage } from '@aws-amplify/ui-react-storage'
 
 const client = generateClient<Schema>();
 
@@ -35,9 +36,9 @@ function ProjectGallery() {
               cursor: "pointer",
             }}
           >
-            <img
-              src={project.project_icon ?? ""}
+            <StorageImage
               alt={project.project_name}
+              path={project.project_icon ?? ""}
               style={{ width: "64px", height: "64px", objectFit: "contain" }}
             />
             <span>{project.project_name}</span>

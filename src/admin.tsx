@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../amplify/data/resource";
+import { StorageImage } from '@aws-amplify/ui-react-storage';
 
 interface User {
   username: string; // preferred_username for display
@@ -530,7 +531,7 @@ function Admin({ onUserGroupChange }: AdminProps) {
                   <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.updatedAt ? new Date(project.updatedAt).toLocaleString() : "-"}</td>
                   <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.project_name}</td>
                   <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.project_description ?? "-"}</td>
-                  <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.project_icon ?? "-"}</td>
+                  <td style={{ border: "1px solid black", padding: "0.5rem" }}><StorageImage alt={project.project_name} path={project.project_icon ?? "-"} /></td>
                   <td style={{ border: "1px solid black", padding: "0.5rem" }}>
                     {project.project_url ? (
                       <a href={project.project_url} target="_blank" rel="noopener noreferrer">Link</a>
