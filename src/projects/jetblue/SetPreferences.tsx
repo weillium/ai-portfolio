@@ -14,7 +14,7 @@ const SetPreferences: React.FC = () => {
   const [airports, setAirports] = useState<Array<{airport_id: string; airport_name: string; airport_code: string}>>([]);
   const [homeAirportId, setHomeAirportId] = useState('');
   const [memberId, setMemberId] = useState('');
-  const [preferredFlightClass, setPreferredFlightClass] = useState<'economy' | 'business' | 'first'>('economy');
+  const [preferredFlightClass, setPreferredFlightClass] = useState<'blue basic' | 'blue' | 'blue plus' | 'blue extra' | 'mint'>('blue');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [userPrefId, setUserPrefId] = useState<string | null>(null);
@@ -50,7 +50,7 @@ const SetPreferences: React.FC = () => {
           setUserPrefId(pref.user_preference_id);
           setHomeAirportId(pref.home_airport_id);
           setMemberId(pref.member_id ?? '');
-          setPreferredFlightClass(pref.preferred_flight_class ?? 'economy');
+          setPreferredFlightClass(pref.preferred_flight_class ?? 'blue');
         }
       } catch (error) {
         console.error('Error fetching user preferences:', error);
@@ -178,13 +178,15 @@ const SetPreferences: React.FC = () => {
           <select
             id="preferredFlightClass"
             value={preferredFlightClass}
-            onChange={(e) => setPreferredFlightClass(e.target.value as 'economy' | 'business' | 'first')}
+            onChange={(e) => setPreferredFlightClass(e.target.value as 'blue basic' | 'blue' | 'blue plus' | 'blue extra' | 'mint')}
             required
             style={{ width: '100%', padding: 8 }}
           >
-            <option value="economy">Economy</option>
-            <option value="business">Business</option>
-            <option value="first">First</option>
+            <option value="blue basic">Blue Basic</option>
+            <option value="blue">Blue</option>
+            <option value="blue plus">Blue Plus</option>
+            <option value="blue extra">Blue Extra</option>
+            <option value="mint">Mint</option>
           </select>
         </div>
 
