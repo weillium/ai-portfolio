@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../amplify/data/resource";
-import { StorageImage } from '@aws-amplify/ui-react-storage';
+import { StorageImage, FileUploader } from '@aws-amplify/ui-react-storage';
 
 interface User {
   username: string; // preferred_username for display
@@ -40,7 +40,7 @@ interface Project {
   project_name: string;
   project_description?: string | null;
   project_icon?: string | null;
-  project_url?: string | null;
+  project_component?: string | null;
   show_project?: boolean | null;
 }
 
@@ -96,7 +96,7 @@ function Admin({ onUserGroupChange }: AdminProps) {
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [newProjectIcon, setNewProjectIcon] = useState("");
-  const [newProjectUrl, setNewProjectUrl] = useState("");
+  const [newProjectComponent, setNewProjectComponent] = useState("");
   const [newProjectShow, setNewProjectShow] = useState(true);
 
   const [showEditProjectModal, setShowEditProjectModal] = useState(false);
@@ -305,7 +305,7 @@ function Admin({ onUserGroupChange }: AdminProps) {
         project_name: newProjectName,
         project_description: newProjectDescription || undefined,
         project_icon: newProjectIcon || undefined,
-        project_url: newProjectUrl || undefined,
+        project_component: newProjectComponent || undefined,
         show_project: newProjectShow,
       });
       if (errors) {
@@ -317,7 +317,7 @@ function Admin({ onUserGroupChange }: AdminProps) {
         setNewProjectName("");
         setNewProjectDescription("");
         setNewProjectIcon("");
-        setNewProjectUrl("");
+        setNewProjectComponent("");
         setNewProjectShow(true);
         fetchProjects();
       }
@@ -369,7 +369,7 @@ function Admin({ onUserGroupChange }: AdminProps) {
         project_name: editProject.project_name,
         project_description: editProject.project_description || undefined,
         project_icon: editProject.project_icon || undefined,
-        project_url: editProject.project_url || undefined,
+        project_component: editProject.project_component || undefined,
         show_project: editProject.show_project ?? false,
       });
       if (errors) {
@@ -533,11 +533,7 @@ function Admin({ onUserGroupChange }: AdminProps) {
                   <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.project_description ?? "-"}</td>
                   <td style={{ border: "1px solid black", padding: "0.5rem" }}><StorageImage alt={project.project_name} path={project.project_icon ?? "-"} /></td>
                   <td style={{ border: "1px solid black", padding: "0.5rem" }}>
-                    {project.project_url ? (
-                      <a href={project.project_url} target="_blank" rel="noopener noreferrer">Link</a>
-                    ) : (
-                      "-"
-                    )}
+                    {project.project_component ?? ("-")}
                   </td>
                   <td style={{ border: "1px solid black", padding: "0.5rem" }}>{project.show_project ? "Yes" : "No"}</td>
                   <td style={{ border: "1px solid black", padding: "0.5rem", display: "flex", gap: "0.25rem" }}>
@@ -565,10 +561,20 @@ function Admin({ onUserGroupChange }: AdminProps) {
               <label>
                 Icon URL:
                 <input type="text" value={newProjectIcon} onChange={e => setNewProjectIcon(e.target.value)} style={{ width: "100%", marginBottom: "1rem" }} />
+                <FileUploader
+                  acceptedFileTypes={["image/*"]}
+                  path="project-icons/"
+                  maxFileCount={1}
+                  isResumable
+                  onUploadSuccess={(event) => {
+                    const key = event.key;
+                    setNewProjectIcon(key || "");
+                  }}
+                />
               </label>
               <label>
-                Project URL:
-                <input type="text" value={newProjectUrl} onChange={e => setNewProjectUrl(e.target.value)} style={{ width: "100%", marginBottom: "1rem" }} />
+                Project Component:
+                <input type="text" value={newProjectComponent} onChange={e => setNewProjectComponent(e.target.value)} style={{ width: "100%", marginBottom: "1rem" }} />
               </label>
               <label>
                 Show Project:
@@ -598,10 +604,20 @@ function Admin({ onUserGroupChange }: AdminProps) {
               <label>
                 Icon URL:
                 <input type="text" value={editProject.project_icon ?? ""} onChange={e => setEditProject({ ...editProject, project_icon: e.target.value })} style={{ width: "100%", marginBottom: "1rem" }} />
+                <FileUploader
+                  acceptedFileTypes={["image/*"]}
+                  path="project-icons/"
+                  maxFileCount={1}
+                  isResumable
+                  onUploadSuccess={(event) => {
+                    const key = event.key;
+                    setEditProject(editProject ? { ...editProject, project_icon: key || "" } : null);
+                  }}
+                />
               </label>
               <label>
-                Project URL:
-                <input type="text" value={editProject.project_url ?? ""} onChange={e => setEditProject({ ...editProject, project_url: e.target.value })} style={{ width: "100%", marginBottom: "1rem" }} />
+                Project Component:
+                <input type="text" value={editProject.project_component ?? ""} onChange={e => setEditProject({ ...editProject, project_component: e.target.value })} style={{ width: "100%", marginBottom: "1rem" }} />
               </label>
               <label>
                 Show Project:

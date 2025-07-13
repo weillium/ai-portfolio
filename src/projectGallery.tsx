@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { StorageImage } from '@aws-amplify/ui-react-storage'
+import JetblueAirports from './jetblue';
 
 const client = generateClient<Schema>();
 
@@ -38,7 +39,7 @@ function ProjectGallery() {
           >
             <StorageImage
               alt={project.project_name}
-              path={project.project_icon ?? ""}
+              path={project.project_icon ?? "-"}
               style={{ width: "64px", height: "64px", objectFit: "contain" }}
             />
             <span>{project.project_name}</span>
@@ -67,8 +68,10 @@ function ProjectGallery() {
               background: "white",
               padding: "2rem",
               borderRadius: "8px",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
+              maxWidth: "95vw",
+              maxHeight: "95vh",
+              width: "95vw",
+              height: "95vh",
               overflowY: "auto",
             }}
             onClick={(e) => e.stopPropagation()}
@@ -81,11 +84,15 @@ function ProjectGallery() {
             <p>
               Last updated on: {selectedProject.updatedAt ? new Date(selectedProject.updatedAt).toLocaleDateString() : "N/A"}
             </p>
-            <iframe
-              src={selectedProject.project_url ?? ""}
-              title={selectedProject.project_name}
-              style={{ width: "100%", height: "400px", border: "none" }}
-            />
+            {selectedProject.project_component === 'jetblue' ? (
+              <JetblueAirports />
+            ) : selectedProject.project_component ? (
+              <iframe
+                src={selectedProject.project_component ?? ""}
+                title={selectedProject.project_name}
+                style={{ width: "100%", height: "400px", border: "none" }}
+              />
+            ) : null}
             <button onClick={() => setSelectedProject(null)} style={{ marginTop: "1rem" }}>
               Close
             </button>
