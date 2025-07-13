@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../amplify/data/resource";
+import type { Schema } from "../../amplify/data/resource";
 import { StorageImage, FileUploader } from '@aws-amplify/ui-react-storage';
 
 interface User {

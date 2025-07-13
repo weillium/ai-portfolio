@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
+import type { Schema } from "../../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import { StorageImage } from '@aws-amplify/ui-react-storage'
-import JetblueAirports from './jetblue';
+import JetblueAirports from '../projects/jetblue/jetblue';
 
 const client = generateClient<Schema>();
 

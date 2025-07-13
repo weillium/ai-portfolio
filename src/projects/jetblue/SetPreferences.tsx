@@ -1,51 +1,19 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { generateClient } from 'aws-amplify/data';
 import { fetchUserAttributes, fetchAuthSession } from '@aws-amplify/auth';
-import type { Schema } from '../amplify/data/resource';
 import { v4 as uuidv4 } from 'uuid';
 
-const client = generateClient<Schema>();
+const client = generateClient();
 
-const SignedInHome: React.FC = () => <div>Signed In Home Placeholder</div>;
-
-function TabNav({ tabs, selectedTab, onSelectTab, disabledTabs = [] }: { tabs: string[]; selectedTab: string; onSelectTab: (tab: string) => void; disabledTabs?: string[] }) {
-  return (
-    <nav style={{ display: 'flex', borderBottom: '1px solid #ccc', marginBottom: 20 }}>
-      {tabs.map((tab) => {
-        const isDisabled = disabledTabs.includes(tab);
-        return (
-          <button
-            key={tab}
-            onClick={() => !isDisabled && onSelectTab(tab)}
-            disabled={isDisabled}
-            style={{
-              flex: 1,
-              padding: '10px 15px',
-              cursor: isDisabled ? 'not-allowed' : 'pointer',
-              border: 'none',
-              borderBottom: selectedTab === tab ? '3px solid #0070f3' : '3px solid transparent',
-              backgroundColor: 'transparent',
-              fontWeight: selectedTab === tab ? 'bold' : 'normal',
-              color: isDisabled ? '#999' : 'inherit',
-            }}
-          >
-            {tab}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-export function SetPreferences() {
+const SetPreferences: React.FC = () => {
   const { user } = useAuthenticator();
   const userId = user?.username ?? '';
 
   const [preferredUsername, setPreferredUsername] = useState('');
   const [airports, setAirports] = useState<Array<{airport_id: string; airport_name: string; airport_code: string}>>([]);
-  const [homeAirportId, setHomeAirportId] = useState<string>('');
-  const [memberId, setMemberId] = useState<string>('');
+  const [homeAirportId, setHomeAirportId] = useState('');
+  const [memberId, setMemberId] = useState('');
   const [preferredFlightClass, setPreferredFlightClass] = useState<'economy' | 'business' | 'first'>('economy');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -228,120 +196,6 @@ export function SetPreferences() {
       {message && <p style={{ marginTop: 15 }}>{message}</p>}
     </div>
   );
-}
-
-const JetblueAirports: React.FC = () => {
-  const { user } = useAuthenticator();
-  const [userPref, setUserPref] = useState<Schema['JetblueUserPreferences']['type'] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('Preferences');
-  const [groups, setGroups] = useState<string[]>([]);
-
-  useEffect(() => {
-    async function fetchUserPref() {
-      if (!user) {
-        setUserPref(null);
-        setLoading(false);
-        return;
-      }
-      try {
-        const userId = user.username;
-        const response = await client.models.JetblueUserPreferences.list({
-          filter: { user_id: { eq: userId } }
-        });
-        setUserPref(response.data?.[0] ?? null);
-      } catch {
-        setUserPref(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    async function fetchGroups() {
-      try {
-        const session = await fetchAuthSession();
-        if (
-          session.tokens &&
-          session.tokens.accessToken &&
-          session.tokens.accessToken.payload &&
-          session.tokens.accessToken.payload['cognito:groups']
-        ) {
-          const groupsFromToken = session.tokens.accessToken.payload['cognito:groups'];
-          if (typeof groupsFromToken === 'string') {
-            setGroups(groupsFromToken.split(','));
-          } else if (Array.isArray(groupsFromToken)) {
-            setGroups(groupsFromToken.map((g) => String(g)));
-          } else {
-            setGroups([]);
-          }
-        } else {
-          setGroups([]);
-        }
-      } catch (error) {
-        console.error('Error fetching auth session groups:', error);
-        setGroups([]);
-      }
-    }
-
-    fetchUserPref();
-    fetchGroups();
-  }, [user]);
-
-  const isAdmin = groups.includes('admin');
-
-  const enabledTabs = useMemo(() => {
-    if (isAdmin) return ['Home', 'Airports', 'Trips', 'Users', 'Preferences'];
-    return userPref ? ['Home', 'Airports', 'Trips', 'Users', 'Preferences'] : ['Preferences'];
-  }, [userPref, isAdmin]);
-
-  const disabledTabs = useMemo(() => {
-    if (isAdmin) return [];
-    if (userPref) return [];
-    return ['Home', 'Airports', 'Trips', 'Users'];
-  }, [userPref, isAdmin]);
-
-  useEffect(() => {
-    if (!enabledTabs.includes(selectedTab)) {
-      setSelectedTab('Preferences');
-    }
-  }, [selectedTab, enabledTabs]);
-
-  if (loading) return <div>Loading...</div>;
-
-  const tabs = ['Home', 'Airports', 'Trips', 'Users', 'Preferences'];
-
-  function renderTabContent() {
-    switch (selectedTab) {
-      case 'Home':
-        return <SignedInHome />;
-      case 'Airports':
-        return <div>Airports Content Placeholder</div>;
-      case 'Trips':
-        return <div>Trips Content Placeholder</div>;
-      case 'Users':
-        return <div>Users Content Placeholder</div>;
-      case 'Preferences':
-        return <SetPreferences />;
-      default:
-        return null;
-    }
-  }
-
-  return (
-    <div style={{ maxWidth: 900, margin: 'auto', padding: 20 }}>
-      <TabNav
-        tabs={tabs}
-        selectedTab={selectedTab}
-        onSelectTab={(tab) => {
-          if (!disabledTabs.includes(tab)) {
-            setSelectedTab(tab);
-          }
-        }}
-        disabledTabs={disabledTabs}
-      />
-      {renderTabContent()}
-    </div>
-  );
 };
 
-export default JetblueAirports;
+export default SetPreferences;
