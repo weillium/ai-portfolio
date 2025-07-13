@@ -140,7 +140,7 @@ const schema = a.schema({
       user_id: a.id().required(),
       home_airport_id: a.id().required(),
       member_id: a.string(),
-      preferred_flight_class: a.enum(['blue basic', 'blue', 'blue plus', 'blue extra', 'mint']),
+      preferred_flight_class: a.enum(['blue_basic', 'blue', 'blue_plus', 'blue_extra', 'mint']),
       airports_visited: a.integer().default(0),
       total_spend_usd: a.float().default(0),
       user_queries: a.hasMany('JetblueUserQueries', 'user_id'),
